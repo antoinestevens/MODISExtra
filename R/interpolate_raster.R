@@ -88,6 +88,11 @@ interpolate_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
 
   opts <- MODIS:::combineOptions(...)
 
+  if(is.null(opts$datatype))
+    datatype <- dataType(x)
+  else
+    datatype <- opts$datatype
+
   if (is.null(opts$minDat))
     minDat <- 3 # 3 is very small!
   else
@@ -132,7 +137,7 @@ interpolate_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
                               outlierThreshold = outlierThreshold,
                               df = df, minDat = minDat,
                               ws = NULL, gap = FALSE),
-                  cores, filename)
+                  cores, filename, datatype)
 }
 
 #' @title Fill NA values in Raster* time series by interpolation (gap filling)
@@ -171,6 +176,11 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
     stop("The Fensholt and Proud method is valid only when timeInfo$inputLayerDates and timeInfo$outputLayerDates are identical")
 
   opts <- MODIS:::combineOptions(...)
+
+  if(is.null(opts$datatype))
+    datatype <- dataType(x)
+  else
+    datatype <- opts$datatype
 
   if (is.null(opts$minDat))
     minDat <- 3 # 3 is very small!
@@ -216,19 +226,16 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
                               outlierThreshold = outlierThreshold,
                               df = df, minDat = minDat,
                               ws = ws, gap = TRUE),
-                  cores, filename)
+                  cores, filename,datatype)
 }
 
 
 
 .process_raster <- function(x, w, t, timeInfo,
                             fun,args,
-                            cores, filename,...)
+                            cores, filename,datatype,...)
 {
   # Main workhorse + check raster data consistency
-
-  if(is.null(opts$datatype))
-    opts$datatype <- dataType(x)
 
   if(!inherits(x,"Raster"))
     x <- stack(x, quick=TRUE)
@@ -256,7 +263,7 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
 
   b <- list()
   b[[1]] <- brick(x,nl=as.integer(length(timeInfo$outSeq)), values=FALSE)
-  b[[1]] <- writeStart(b[[1]],filename, datatype=opts$datatype, ...)
+  b[[1]] <- writeStart(b[[1]],filename, datatype=datatype, ...)
 
   tr <- blockSize(x)
 
