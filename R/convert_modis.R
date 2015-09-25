@@ -1,7 +1,7 @@
 #' @title Convert MODIS files
 #' @description Convert MODIS files into a Raster* object, and possibly convert raw DN to physical values.
 #' @usage convert_modis(path = ".", pattern = NULL, type, convertDN = TRUE,
-#'                      extractAll = FALSE, brick = TRUE, filename, ...)
+#'                      extractAll = FALSE, brick = TRUE, filename, overwrite = TRUE, ...)
 #' @param path Path to the folder where MODIS files are stored. Default is the working directory. See \code{\link[MODIS]{preStack}}.
 #' @param pattern optional regular expression, only file names matching the regular expression will be extracted. See \code{\link[MODIS]{preStack}}.
 #' @param type character \code{vector} of length 1 giving the type of MODIS data. Should be one of these values:
@@ -12,8 +12,9 @@
 #' Default is \code{FALSE}.
 #' @param brick logical value indicating whether a \code{\link[raster]{RasterBrick-class}} should be returned. Default is \code{TRUE}.
 #' @param filename Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.
+#' @param overwrite Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.
 #' @param ... arguments passed to \code{\link{orgTime}} (for instance to restrict the studied period with \code{begin} or \code{end}
-#' or define new time stamps to interpolate to with \code{nDays})
+#'        or define new time stamps to interpolate to with \code{nDays})
 #' @return a \code{list} with the following elements (where XXX corresponds to the \code{type} argument):
 #' \itemize{
 #'    \item{\code{raster_XXX}}{the processed Raster* object}
@@ -87,7 +88,7 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
     modis <- brick(modis)
 
   if(!missing(filename)&!extractAll)
-    writeRaster(modis,filename)
+    writeRaster(modis,filename,overwrite)
 
   meta_list <- list()
   # assign result to global env
