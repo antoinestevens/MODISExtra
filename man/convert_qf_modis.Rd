@@ -4,7 +4,7 @@
 \alias{convert_qf_modis}
 \title{Convert bit values from a QFLAG MODIS product}
 \usage{
-convert_qf_modis(r,qf,type)
+convert_qf_modis(r,qf,type,filename = rasterTmpFile(), overwrite = TRUE)
 }
 \arguments{
 \item{r}{A \code{\link[raster]{Raster-class}} object}
@@ -15,9 +15,13 @@ If type = 'MOD15':'MODLAND_QC','sensor','dead_detector','cloud','scf_qc'.
 If type = 'MOD15Extra':'sea', 'snow', 'aerosol', 'cirrus', 'cloud', 'shadow', 'biome'}
 
 \item{type}{character \code{vector} of length 1 giving the MODIS data type. Should be one of these: 'MOD13', 'MOD15', 'MOD15Extra'}
+
+\item{filename}{Passed to \code{\link[raster]{writeRaster}}.}
+
+\item{overwrite}{arguments passed to \code{\link[raster]{writeRaster}}.}
 }
 \value{
-A \code{\link[raster]{Raster-class}} object with two values (1,0), representing respectively pixels that are flagged by at least one of the give \code{qf},
+A \code{\link[raster]{RasterBrick-class}} object with two values (1,0), representing respectively pixels that are flagged by at least one of the give \code{qf},
        and pixels that are not flagged in any of the given \code{qf}
 }
 \description{

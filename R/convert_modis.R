@@ -1,7 +1,8 @@
 #' @title Convert MODIS files
 #' @description Convert MODIS files into a Raster* object, and possibly convert raw DN to physical values.
 #' @usage convert_modis(path = ".", pattern = NULL, type, convertDN = TRUE,
-#'                      extractAll = FALSE, brick = TRUE, filename, overwrite = TRUE, ...)
+#'                      extractAll = FALSE, filename = rasterTmpFile(),
+#'                      overwrite = TRUE, ...)
 #' @param path Path to the folder where MODIS files are stored. Default is the working directory. See \code{\link[MODIS]{preStack}}.
 #' @param pattern optional regular expression, only file names matching the regular expression will be extracted. See \code{\link[MODIS]{preStack}}.
 #' @param type character \code{vector} of length 1 giving the type of MODIS data. Should be one of these values:
@@ -10,20 +11,19 @@
 #' See \code{\link{convert_dn_modis}}. Default is \code{TRUE}.
 #' @param extractAll a logical value indicating whether time info, file names and date object should be returned in addition to the processed raster object.
 #' Default is \code{FALSE}.
-#' @param brick logical value indicating whether a \code{\link[raster]{RasterBrick-class}} should be returned. Default is \code{TRUE}.
-#' @param filename Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.
-#' @param overwrite Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.
+#' @param filename Passed to \code{\link[raster]{writeRaster}}.
+#' @param overwrite Passed to \code{\link[raster]{writeRaster}}.
 #' @param ... arguments passed to \code{\link{orgTime}} (for instance to restrict the studied period with \code{begin} or \code{end}
 #'        or define new time stamps to interpolate to with \code{nDays})
 #' @return a \code{list} with the following elements (where XXX corresponds to the \code{type} argument):
 #' \itemize{
 #'    \item{\code{raster_XXX}}{the processed Raster* object}
 #'    \item{\code{raster_fill_XXX}}{if \code{type} is 'Fpar_1km|Lai_1km|FparStdDev_1km|LaiStdDev_1km', fill values are automatically extracted (https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod15a2)}
-#'    \item{\code{ti_XXX}}{time info as returned by \code{\link[MODIS]{orgTime}}}
-#'    \item{\code{fn_XXX}}{file names as returned by \code{\link[MODIS]{preStack}}}
-#'    \item{\code{d_XXX}}{\code{vector} of dates as returned by \code{\link[MODIS]{extractDate}}}
+#'    \item{\code{timeInfo_XXX}}{time info as returned by \code{\link[MODIS]{orgTime}}}
+#'    \item{\code{filename_XXX}}{file names as returned by \code{\link[MODIS]{preStack}}}
+#'    \item{\code{date_XXX}}{\code{vector} of dates as returned by \code{\link[MODIS]{extractDate}}}
 #' }
-#' If there is only one element in the \code{list}, the \code{convert_modis} returns the \code{unlist}-ed object.
+#' If there is only one element in the \code{list}, the \code{convert_modis} returns the \code{unlist}-ed Raster object.
 #' @author Antoine Stevens
 #' @examples
 #' \dontrun{
@@ -34,10 +34,11 @@
 #' # process and convert to raster
 #' path <- "~/COPERNICUS/MODIS_DATA/PROCESSED/H19V5"
 #' convert_modis(path = path,pattern = "16_days_NDVI")
+#' copernicus <- brick("~/COPERNICUS/COP_DATA/copernicus.grd")
 #' }
 #'
 #' @export
-convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extractAll = FALSE,brick = TRUE,filename,overwrite,...) {
+convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extractAll = FALSE,filename = rasterTmpFile(),overwrite = TRUE,...) {
 
   capture.output(fn <- preStack(path = path, pattern = pattern)) # capture.output to ignore annoying calls to print in preStack
 
@@ -67,8 +68,8 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
     modis_fill <- add_raster_attributes(modis_fill,modis_fill_levels)
     # set time info
     modis_fill <- setZ(modis_fill,d$inputLayerDates)
-    if(brick)
-      modis_fill <- brick(modis_fill)
+    # convert to brick and write to disk
+    modis_fill <- brick(writeRaster(modis_fill,filename = paste0(tools::file_path_sans_ext(filename),"_fill",extension(filename))))
     # names(modis_fill) <- format(d$inputLayerDates,"%Y_%m_%d")
     # assign to global env
     modis_list[[2]] <- list(modis_fill)
@@ -83,12 +84,8 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
   modis <- setZ(modis,d$inputLayerDates)
   # names(modis) <- format(d$inputLayerDates,"%Y_%m_%d")
 
-  # Convert to brick
-  if(brick)
-    modis <- brick(modis)
-
-  if(!missing(filename)&!extractAll)
-    writeRaster(modis,filename,overwrite)
+  # Convert to brick and write to disk
+  modis <- brick(writeRaster(modis,filename = filename,overwrite = overwrite))
 
   meta_list <- list()
   # assign result to global env
@@ -96,7 +93,7 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
     meta_list[[1]] <- ti
     meta_list[[2]] <- fn
     meta_list[[3]] <- d
-    names(meta_list) <- paste0(c("ti","fn","d"),"_",type)
+    names(meta_list) <- paste0(c("timeInfo","filename","date"),"_",type)
   }
   modis_list[[1]] <- modis
   names(modis_list) <- paste0("raster_",type)

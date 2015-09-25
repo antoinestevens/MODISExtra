@@ -1,20 +1,22 @@
 #' @title Convert bit values from a QFLAG MODIS product
 #' @description Convert a Raster* object representing MODIS QFLAG bit values to a Raster* with two categories representing flagged and non-flagged pixels
-#' @usage convert_qf_modis(r,qf,type)
+#' @usage convert_qf_modis(r,qf,type,filename = rasterTmpFile(), overwrite = TRUE)
 #' @param r A \code{\link[raster]{Raster-class}} object
 #' @param qf Quality Flag to be extracted. Can be more than one of these:
 #' If type = 'MOD13': 'MODLAND_QA','VI_usefulness','aerosol_quantity','adjacent_cloud','atmosphere_brdf','mixed_clouds','land_water_flag','snow','shadow'.
 #' If type = 'MOD15':'MODLAND_QC','sensor','dead_detector','cloud','scf_qc'.
 #' If type = 'MOD15Extra':'sea', 'snow', 'aerosol', 'cirrus', 'cloud', 'shadow', 'biome'
 #' @param type character \code{vector} of length 1 giving the MODIS data type. Should be one of these: 'MOD13', 'MOD15', 'MOD15Extra'
-#' @return A \code{\link[raster]{Raster-class}} object with two values (1,0), representing respectively pixels that are flagged by at least one of the give \code{qf},
+#' @param filename Passed to \code{\link[raster]{writeRaster}}.
+#' @param overwrite arguments passed to \code{\link[raster]{writeRaster}}.
+#' @return A \code{\link[raster]{RasterBrick-class}} object with two values (1,0), representing respectively pixels that are flagged by at least one of the give \code{qf},
 #'        and pixels that are not flagged in any of the given \code{qf}
 #' @references https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13a2,
 #' https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod15a2
 #' @seealso \code{\link[MODIS]{extractBits}} and \code{\link{interpolate_raster}} for an example
 #' @author Antoine Stevens
 #' @export
-convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra")){
+convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename = rasterTmpFile(), overwrite = TRUE){
 
   if (!inherits(r, "Raster"))
     stop("r should be a Raster* object")
@@ -80,7 +82,11 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra")){
     rtmp
   }
   names(rr) <- names(r)
+
   if(length(getZ(r)))
      rr <- setZ(rr,getZ(r))
+
+  # Convert to brick and write to disk
+  rr <- brick(writeRaster(rr,filename = filename,overwrite = overwrite))
   rr
 }

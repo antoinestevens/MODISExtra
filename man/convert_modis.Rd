@@ -5,7 +5,8 @@
 \title{Convert MODIS files}
 \usage{
 convert_modis(path = ".", pattern = NULL, type, convertDN = TRUE,
-                     extractAll = FALSE, brick = TRUE, filename, overwrite = TRUE, ...)
+                     extractAll = FALSE, filename = rasterTmpFile(),
+                     overwrite = TRUE, ...)
 }
 \arguments{
 \item{path}{Path to the folder where MODIS files are stored. Default is the working directory. See \code{\link[MODIS]{preStack}}.}
@@ -21,25 +22,23 @@ See \code{\link{convert_dn_modis}}. Default is \code{TRUE}.}
 \item{extractAll}{a logical value indicating whether time info, file names and date object should be returned in addition to the processed raster object.
 Default is \code{FALSE}.}
 
-\item{brick}{logical value indicating whether a \code{\link[raster]{RasterBrick-class}} should be returned. Default is \code{TRUE}.}
+\item{filename}{Passed to \code{\link[raster]{writeRaster}}.}
 
-\item{filename}{Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.}
+\item{overwrite}{Passed to \code{\link[raster]{writeRaster}}.}
 
 \item{...}{arguments passed to \code{\link{orgTime}} (for instance to restrict the studied period with \code{begin} or \code{end}
 or define new time stamps to interpolate to with \code{nDays})}
-
-\item{overwrite}{Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.}
 }
 \value{
 a \code{list} with the following elements (where XXX corresponds to the \code{type} argument):
 \itemize{
    \item{\code{raster_XXX}}{the processed Raster* object}
    \item{\code{raster_fill_XXX}}{if \code{type} is 'Fpar_1km|Lai_1km|FparStdDev_1km|LaiStdDev_1km', fill values are automatically extracted (https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod15a2)}
-   \item{\code{ti_XXX}}{time info as returned by \code{\link[MODIS]{orgTime}}}
-   \item{\code{fn_XXX}}{file names as returned by \code{\link[MODIS]{preStack}}}
-   \item{\code{d_XXX}}{\code{vector} of dates as returned by \code{\link[MODIS]{extractDate}}}
+   \item{\code{timeInfo_XXX}}{time info as returned by \code{\link[MODIS]{orgTime}}}
+   \item{\code{filename_XXX}}{file names as returned by \code{\link[MODIS]{preStack}}}
+   \item{\code{date_XXX}}{\code{vector} of dates as returned by \code{\link[MODIS]{extractDate}}}
 }
-If there is only one element in the \code{list}, the \code{convert_modis} returns the \code{unlist}-ed object.
+If there is only one element in the \code{list}, the \code{convert_modis} returns the \code{unlist}-ed Raster object.
 }
 \description{
 Convert MODIS files into a Raster* object, and possibly convert raw DN to physical values.
@@ -53,6 +52,7 @@ runGdal(product="MOD13A2", begin = "2009.06.01", end = "2009.06.30",
 # process and convert to raster
 path <- "~/COPERNICUS/MODIS_DATA/PROCESSED/H19V5"
 convert_modis(path = path,pattern = "16_days_NDVI")
+copernicus <- brick("~/COPERNICUS/COP_DATA/copernicus.grd")
 }
 }
 \author{
