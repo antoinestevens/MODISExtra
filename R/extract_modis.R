@@ -1,6 +1,7 @@
 #' @title Convert MODIS files
 #' @description Convert MODIS files into a Raster* object, and possibly convert raw DN to physical values.
-#' @usage convert_modis(path = ".", pattern = NULL, type, convertDN = TRUE, extractAll = FALSE, ...)
+#' @usage convert_modis(path = ".", pattern = NULL, type, convertDN = TRUE,
+#'                      extractAll = FALSE, brick = TRUE, filename, ...)
 #' @param path Path to the folder where MODIS files are stored. Default is the working directory. See \code{\link[MODIS]{preStack}}.
 #' @param pattern optional regular expression, only file names matching the regular expression will be extracted. See \code{\link[MODIS]{preStack}}.
 #' @param type character \code{vector} of length 1 giving the type of MODIS data. Should be one of these values:
@@ -9,6 +10,8 @@
 #' See \code{\link{convert_dn_modis}}. Default is \code{TRUE}.
 #' @param extractAll a logical value indicating whether time info, file names and date object should be returned in addition to the processed raster object.
 #' Default is \code{FALSE}.
+#' @param brick logical value indicating whether a \code{\link[raster]{RasterBrick-class}} should be returned. Default is \code{TRUE}.
+#' @param filename Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.
 #' @param ... arguments passed to \code{\link{orgTime}} (for instance to restrict the studied period with \code{begin} or \code{end}
 #' or define new time stamps to interpolate to with \code{nDays})
 #' @return a \code{list} with the following elements (where XXX corresponds to the \code{type} argument):
@@ -33,9 +36,9 @@
 #' }
 #'
 #' @export
-convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extractAll = FALSE,...) {
+convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extractAll = FALSE,brick = TRUE,filename,...) {
 
-  capture.output(fn <- preStack(path = path, pattern = pattern)) # I use capture.output to ignore annoying calls to print in preStack
+  capture.output(fn <- preStack(path = path, pattern = pattern)) # capture.output to ignore annoying calls to print in preStack
 
   if(is.null(fn))
     stop("No data found")
@@ -63,6 +66,8 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
     modis_fill <- add_raster_attributes(modis_fill,modis_fill_levels)
     # set time info
     modis_fill <- setZ(modis_fill,d$inputLayerDates)
+    if(brick)
+      modis_fill <- brick(modis_fill)
     # names(modis_fill) <- format(d$inputLayerDates,"%Y_%m_%d")
     # assign to global env
     modis_list[[2]] <- list(modis_fill)
@@ -76,6 +81,13 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
   # Set time info
   modis <- setZ(modis,d$inputLayerDates)
   # names(modis) <- format(d$inputLayerDates,"%Y_%m_%d")
+
+  # Convert to brick
+  if(brick)
+    modis <- brick(modis)
+
+  if(!missing(filename)&!extractAll)
+    writeRaster(modis,filename)
 
   meta_list <- list()
   # assign result to global env

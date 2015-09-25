@@ -4,7 +4,8 @@
 \alias{convert_modis}
 \title{Convert MODIS files}
 \usage{
-convert_modis(path = ".", pattern = NULL, type, convertDN = TRUE, extractAll = FALSE, ...)
+convert_modis(path = ".", pattern = NULL, type, convertDN = TRUE,
+                     extractAll = FALSE, brick = TRUE, filename, ...)
 }
 \arguments{
 \item{path}{Path to the folder where MODIS files are stored. Default is the working directory. See \code{\link[MODIS]{preStack}}.}
@@ -19,6 +20,10 @@ See \code{\link{convert_dn_modis}}. Default is \code{TRUE}.}
 
 \item{extractAll}{a logical value indicating whether time info, file names and date object should be returned in addition to the processed raster object.
 Default is \code{FALSE}.}
+
+\item{brick}{logical value indicating whether a \code{\link[raster]{RasterBrick-class}} should be returned. Default is \code{TRUE}.}
+
+\item{filename}{Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.}
 
 \item{...}{arguments passed to \code{\link{orgTime}} (for instance to restrict the studied period with \code{begin} or \code{end}
 or define new time stamps to interpolate to with \code{nDays})}
