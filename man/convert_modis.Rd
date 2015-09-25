@@ -30,13 +30,13 @@ Default is \code{FALSE}.}
 or define new time stamps to interpolate to with \code{nDays})}
 }
 \value{
-a \code{list} with the following elements (where XXX corresponds to the \code{type} argument):
+a \code{list} with the following elements:
 \itemize{
-   \item{\code{raster_XXX}}{the processed Raster* object}
-   \item{\code{raster_fill_XXX}}{if \code{type} is 'Fpar_1km|Lai_1km|FparStdDev_1km|LaiStdDev_1km', fill values are automatically extracted (https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod15a2)}
-   \item{\code{timeInfo_XXX}}{time info as returned by \code{\link[MODIS]{orgTime}}}
-   \item{\code{filename_XXX}}{file names as returned by \code{\link[MODIS]{preStack}}}
-   \item{\code{date_XXX}}{\code{vector} of dates as returned by \code{\link[MODIS]{extractDate}}}
+   \item{\code{raster}}{the processed Raster* object}
+   \item{\code{raster_fill}}{if \code{type} is 'Fpar_1km|Lai_1km|FparStdDev_1km|LaiStdDev_1km', fill values are automatically extracted (https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod15a2)}
+   \item{\code{timeInfo}}{time info as returned by \code{\link[MODIS]{orgTime}}}
+   \item{\code{filename}}{file names as returned by \code{\link[MODIS]{preStack}}}
+   \item{\code{date}}{\code{vector} of dates as returned by \code{\link[MODIS]{extractDate}}}
 }
 If there is only one element in the \code{list}, the \code{convert_modis} returns the \code{unlist}-ed Raster object.
 }

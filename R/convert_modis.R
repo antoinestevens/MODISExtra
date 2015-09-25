@@ -15,13 +15,13 @@
 #' @param overwrite Passed to \code{\link[raster]{writeRaster}}.
 #' @param ... arguments passed to \code{\link{orgTime}} (for instance to restrict the studied period with \code{begin} or \code{end}
 #'        or define new time stamps to interpolate to with \code{nDays})
-#' @return a \code{list} with the following elements (where XXX corresponds to the \code{type} argument):
+#' @return a \code{list} with the following elements:
 #' \itemize{
-#'    \item{\code{raster_XXX}}{the processed Raster* object}
-#'    \item{\code{raster_fill_XXX}}{if \code{type} is 'Fpar_1km|Lai_1km|FparStdDev_1km|LaiStdDev_1km', fill values are automatically extracted (https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod15a2)}
-#'    \item{\code{timeInfo_XXX}}{time info as returned by \code{\link[MODIS]{orgTime}}}
-#'    \item{\code{filename_XXX}}{file names as returned by \code{\link[MODIS]{preStack}}}
-#'    \item{\code{date_XXX}}{\code{vector} of dates as returned by \code{\link[MODIS]{extractDate}}}
+#'    \item{\code{raster}}{the processed Raster* object}
+#'    \item{\code{raster_fill}}{if \code{type} is 'Fpar_1km|Lai_1km|FparStdDev_1km|LaiStdDev_1km', fill values are automatically extracted (https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod15a2)}
+#'    \item{\code{timeInfo}}{time info as returned by \code{\link[MODIS]{orgTime}}}
+#'    \item{\code{filename}}{file names as returned by \code{\link[MODIS]{preStack}}}
+#'    \item{\code{date}}{\code{vector} of dates as returned by \code{\link[MODIS]{extractDate}}}
 #' }
 #' If there is only one element in the \code{list}, the \code{convert_modis} returns the \code{unlist}-ed Raster object.
 #' @author Antoine Stevens
@@ -73,7 +73,7 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
     # names(modis_fill) <- format(d$inputLayerDates,"%Y_%m_%d")
     # assign to global env
     modis_list[[2]] <- list(modis_fill)
-    names(modis_list)[2] <- paste0("raster_fill_",type)
+    names(modis_list)[2] <- "raster_fill"
   }
 
   # convert DN to VI
@@ -93,10 +93,10 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
     meta_list[[1]] <- ti
     meta_list[[2]] <- fn
     meta_list[[3]] <- d
-    names(meta_list) <- paste0(c("timeInfo","filename","date"),"_",type)
+    names(meta_list) <- c("timeInfo","filename","date")
   }
   modis_list[[1]] <- modis
-  names(modis_list) <- paste0("raster_",type)
+  names(modis_list)[1] <- "raster"
   result <- c(modis_list,meta_list)
   if(length(result)==1)
     return(result[[1]])
