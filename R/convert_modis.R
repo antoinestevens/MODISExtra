@@ -34,7 +34,6 @@
 #' # process and convert to raster
 #' path <- "~/COPERNICUS/MODIS_DATA/PROCESSED/H19V5"
 #' convert_modis(path = path,pattern = "16_days_NDVI")
-#' copernicus <- brick("~/COPERNICUS/COP_DATA/copernicus.grd")
 #' }
 #'
 #' @export
@@ -85,7 +84,7 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
   # names(modis) <- format(d$inputLayerDates,"%Y_%m_%d")
 
   # Convert to brick and write to disk
-  modis <- brick(writeRaster(modis,filename = filename,overwrite = overwrite))
+  modis <- writeRaster(modis,filename = filename,overwrite = overwrite)
 
   meta_list <- list()
   # assign result to global env

@@ -87,6 +87,6 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename
      rr <- setZ(rr,getZ(r))
 
   # Convert to brick and write to disk
-  rr <- brick(writeRaster(rr,filename = filename,overwrite = overwrite))
+  rr <- writeRaster(rr,filename = filename,overwrite = overwrite)
   rr
 }

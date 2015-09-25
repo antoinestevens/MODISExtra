@@ -52,7 +52,6 @@ runGdal(product="MOD13A2", begin = "2009.06.01", end = "2009.06.30",
 # process and convert to raster
 path <- "~/COPERNICUS/MODIS_DATA/PROCESSED/H19V5"
 convert_modis(path = path,pattern = "16_days_NDVI")
-copernicus <- brick("~/COPERNICUS/COP_DATA/copernicus.grd")
 }
 }
 \author{
