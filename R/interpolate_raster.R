@@ -342,7 +342,8 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
   if (inherits(t,"Raster"))
   {
     inTu  <- raster::getValues(t, row=row[i], nrows=nrows[i])
-    inTu  <- MODIS::repDoy(inTu,timeInfo,bias=timeInfo$inSeq[1]-1)
+    inTu  <- MODIS::repDoy(inTu,timeInfo)
+    inTu  <- inTu + 1 - lubridate::yday(min(timeInfo$inputLayerDates,timeInfo$outputLayerDates)) # set to same ref as inSeq and outSeq
     set0[is.na(inTu)] <- TRUE
     set0[inTu <= 0] <- TRUE
     inTu[set0] <- 0
