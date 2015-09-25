@@ -37,7 +37,7 @@
 #' }
 #'
 #' @export
-convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extractAll = FALSE,brick = TRUE,filename,...) {
+convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extractAll = FALSE,brick = TRUE,filename,overwrite,...) {
 
   capture.output(fn <- preStack(path = path, pattern = pattern)) # capture.output to ignore annoying calls to print in preStack
 

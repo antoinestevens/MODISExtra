@@ -26,7 +26,6 @@ Default is \code{FALSE}.}
 \item{filename}{Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.}
 
 \item{...}{arguments passed to \code{\link{orgTime}} (for instance to restrict the studied period with \code{begin} or \code{end}
-       or \code{\link[raster]{writeRaster}}
 or define new time stamps to interpolate to with \code{nDays})}
 
 \item{overwrite}{Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.}
