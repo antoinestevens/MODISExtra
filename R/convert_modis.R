@@ -13,6 +13,7 @@
 #' @param brick logical value indicating whether a \code{\link[raster]{RasterBrick-class}} should be returned. Default is \code{TRUE}.
 #' @param filename Passed to \code{\link[raster]{writeRaster}}, if \code{extractAll} is \code{FALSE}.
 #' @param ... arguments passed to \code{\link{orgTime}} (for instance to restrict the studied period with \code{begin} or \code{end}
+#'        or \code{\link[raster]{writeRaster}}
 #' or define new time stamps to interpolate to with \code{nDays})
 #' @return a \code{list} with the following elements (where XXX corresponds to the \code{type} argument):
 #' \itemize{
@@ -87,7 +88,7 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
     modis <- brick(modis)
 
   if(!missing(filename)&!extractAll)
-    writeRaster(modis,filename)
+    writeRaster(modis,filename,...)
 
   meta_list <- list()
   # assign result to global env
