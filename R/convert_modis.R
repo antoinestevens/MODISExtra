@@ -88,7 +88,11 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
     modis <- brick(modis)
 
   if(!missing(filename)&!extractAll)
+<<<<<<< HEAD
     writeRaster(modis,filename,overwrite)
+=======
+    writeRaster(modis,filename,...)
+>>>>>>> 2ca1d3a9e2918a943cc366b5c859221190735836
 
   meta_list <- list()
   # assign result to global env
