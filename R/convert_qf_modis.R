@@ -43,9 +43,8 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename
   b[[1]] <- writeStart(b[[1]], filename = filename,...)
   
   tr <- blockSize(r)
-  
   for ( i in seq_along(tr$row))
-    b[[1]] <- writeValues(b[[1]], .convert_qf_mod(i = i, row = tr$row, nrows = tr$nrow,qf = q, type = type), tr$row[i])
+    b[[1]] <- writeValues(b[[1]], .convert_qf_mod(i = i, r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type), tr$row[i])
   
   for (a in seq_along(b))
     b[[a]] <- writeStop(b[[a]])
@@ -58,17 +57,15 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename
   b
 }
 
-.convert_qf_mod <- function(i,row,nrows,qf,type){
-  
+.convert_qf_mod <- function(i,r,row,nrows,pattern,q,type){
   val  <-  raster::getValues(r, row=row[i], nrows=nrows[i])
   lev <- sort(unique(as.vector(val)))
-
   # This binary bit-string is parsed from right to left, and the individual bits within a bit-field are read from left to right
   # All	HDF-EOS	products	are	written	in	the	big-endian	referencing	scheme.	The	bits are always	numbered
   # from	right	(least-significant	bit)	to	left	(most-significant	bit).
   # See MODIS_LP_QA_Tutorial-2
   if(type=="MOD13"){
-    bits <- (sapply(lev,function(x)as.integer(intToBits(x)[1:16]))) # intToBits convert to least-significant bit first (big endian)
+    bits <- sapply(lev,function(x)as.integer(intToBits(x)[1:16])) # intToBits convert to least-significant bit first (big endian)
     MODLAND_QA <- sfsmisc::as.intBase(bits[2:1,])
     VI_usefulness <- sfsmisc::as.intBase(bits[6:3,])
     aerosol_quantity <- sfsmisc::as.intBase(bits[8:7,])
@@ -79,14 +76,14 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename
     snow <- sfsmisc::as.intBase(bits[15,,drop=F])
     shadow <- sfsmisc::as.intBase(bits[16,,drop=F])
   } else if (type=="MOD15") {
-    bits <- (sapply(lev,function(x)as.integer(intToBits(x)[1:8])))
+    bits <- sapply(lev,function(x)as.integer(intToBits(x)[1:8]))
     MODLAND_QC <- sfsmisc::as.intBase(bits[1,,drop=F])
     sensor <- sfsmisc::as.intBase(bits[2,,drop=F])
     dead_detector <- sfsmisc::as.intBase(bits[3,,drop=F])
     cloud <- sfsmisc::as.intBase(bits[5:4,])
     scf_qc <- sfsmisc::as.intBase(bits[8:6,])
   } else {
-    bits <- (sapply(lev,function(x)as.integer(intToBits(x)[1:8])))
+    bits <- sapply(lev,function(x)as.integer(intToBits(x)[1:8]))
     sea <- sfsmisc::as.intBase(bits[2:1,])
     snow <- sfsmisc::as.intBase(bits[3,,drop=F])
     aerosol <- sfsmisc::as.intBase(bits[4,,drop=F])
@@ -96,11 +93,10 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename
     biome <- sfsmisc::as.intBase(bits[8,,drop=F])
   }
   
-  if(sum(qf)==1)
-    pat <- get(pattern[qf])
+  if(sum(q)==1)
+    pat <- get(pattern[q])
   else 
-    pat <- as.numeric(as.logical(do.call(pmax,lapply(pattern[qf], get))))
-  
+    pat <- as.numeric(as.logical(do.call(pmax,lapply(pattern[q], get))))
   # replace values
   names(pat)  <- lev
   val <- matrix(pat[as.character(val)],nrow=nrow(val),ncol=ncol(val))  
