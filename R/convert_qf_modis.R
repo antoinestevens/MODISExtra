@@ -44,7 +44,7 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename
   
   tr <- blockSize(r)
   for ( i in seq_along(tr$row))
-    b[[1]] <- writeValues(b[[1]], .convert_qf_mod(i = i, r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type), tr$row[i])
+    b[[1]] <- writeValues(b[[1]], .convert_qf_mod(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type), tr$row[i])
   
   for (a in seq_along(b))
     b[[a]] <- writeStop(b[[a]])
@@ -92,11 +92,10 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename
     shadow <- sfsmisc::as.intBase(bits[7,,drop=F])
     biome <- sfsmisc::as.intBase(bits[8,,drop=F])
   }
-  
   if(sum(q)==1)
     pat <- get(pattern[q])
   else 
-    pat <- as.numeric(as.logical(do.call(pmax,lapply(pattern[q], get))))
+    pat <- as.numeric(as.logical(do.call(pmax,lapply(pattern[q], function(x)get(x)))))
   # replace values
   names(pat)  <- lev
   val <- matrix(pat[as.character(val)],nrow=nrow(val),ncol=ncol(val))  
