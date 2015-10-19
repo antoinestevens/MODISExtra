@@ -130,7 +130,7 @@ interpolate_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
       warning(paste0("df should be in 1 < df <= nlayers(x). The parameter is adapted to: ",df))
     }
   }
-
+  
   .process_raster(x,w,t,timeInfo,
                   fun = .interp,
                   args = list(method = method,lambda = lambda,nIter = nIter,
@@ -260,13 +260,12 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
     if(nlayers(x) != nlayers(t))
       stop("x and t rasters have a different number of bands")
   }
-
+  
   b <- list()
   b[[1]] <- brick(x,nl=as.integer(length(timeInfo$outSeq)), values=FALSE)
   b[[1]] <- writeStart(b[[1]],filename, datatype=datatype, ...)
 
   tr <- blockSize(x)
-
   if (missing(cores))
   {
     for ( i in seq_along(tr$row) )
@@ -281,7 +280,6 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
 
     # send expr and data to cluster nodes
     parallel::clusterEvalQ(cl,{library(MODIS);library(rgdal);library(raster);library(ptw)})
-    parallel::clusterExport(cl,c("nn","whittaker","fnp"))
     # number of blocks
     tr <- blockSize(x, minblocks=cores)
     for (i in 1:cores)
@@ -314,6 +312,68 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
 
 .interp <- function(i,row,nrows,x,w,t,timeInfo,method,lambda,nIter,outlierThreshold,df,minDat,ws,gap)
 {
+  # nearest neighbour interpolator
+  nn <- function(y,x,xout) {
+    x <- x[x!=0] 
+    m <- max(c(x,xout),na.rm=T)
+    zx  <- 1:m
+    z <-  c(0,x[-1] - (diff(x)/2),m)
+    z <- as.numeric(cut(zx,z,include.lowest=T))
+    z <- z[xout]
+    return(y[z])
+  }
+
+  # fensholt and proud gap filling algorithm
+  fnp <- function(y,ws=2) {
+    # compute mean y values within a given window size
+    # ws = window size
+    if(!ws %in% 1:2)
+      stop("window size should be 1 or 2")
+    l <- length(y)
+    nn <- pmin(1, l)
+    isna <- is.na(y)
+    if(!any(isna)){
+      return(y)
+    } else {
+      # rbind the signal with a lag and lead of 1
+      y1 <- rbind(c(y[-seq_len(nn)], NA),c(NA, y[seq_len(l - nn)])) # this is refactored from dplyr::lead and dplyr::lag
+      y[isna] <- colMeans(y1[,isna,drop=F],na.rm=T)
+      isnan <- is.nan(y)
+      if(any(isnan)&ws==2){
+        # lag of 2
+        y2 <-  rbind(c(y1[1,-seq_len(nn)],NA),c(NA, y1[2,seq_len(l - nn)]))
+        y[isnan] <- colMeans(y2[,isnan,drop=F],na.rm=T)
+      }
+      y[is.nan(y)] <- NA
+      return(y)
+    }
+  }
+
+  # whittaker interpolator
+  whittaker <- function(y,x,xout,w,lambda,nIter) {
+    # upper enveloppe fitting, see Atzerberg and Eiler, 2003
+    # all observed values
+    # that lie below the fitted curve (or that were missing/flagged values) are
+    # replaced by their fitted value. With the updated values, the smoothing is
+    # repeated
+
+    # add a safe length of data (because layer doy + effective composite doy)
+    vec0 <- rep(0,max(x,xout) - min(x,xout) - 1  + 30)
+    names(vec0) <- 1:length(vec0)
+    y_long <- w_long <- vec0
+    y_long[x] <- y
+    w_long[x] <- w
+
+    for(i in 1:nIter)
+    {
+      fTS <- ptw::whit2(y_long,w=w_long,lambda=lambda)
+      idx <- y_long < fTS
+      y_long[idx] <- fTS[idx]
+    }
+    names(fTS) <- names(vec0)
+    fTS[xout]
+  }
+
   val  <-  raster::getValues(x, row=row[i], nrows=nrows[i])
 
   yRow <- nrow(val)
@@ -322,7 +382,7 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
 
   set0   <- matrix(FALSE,nrow = yRow,ncol = yCol)
   set0[isna] <- TRUE
-  set0[rowSums(val,na.rm=TRUE)==0] <- TRUE
+  # set0[rowSums(val,na.rm=TRUE)==0] <- TRUE
 
   if (!is.null(w))
   {
@@ -431,71 +491,7 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
       }
     }
   }
-  out[rowSums(abs(out))==0,] <- NA
+  # out[rowSums(abs(out))==0,] <- NA
   return(out)
 }
 
-# nearest neighbour interpolator
-nn <- function(y,x,xout) {
-  # find nearest neighbour and assign y values
-  if(identical(x,xout)){
-    stop("x and xout are identical, use the fensholt method with ws = 1 instead")
-  } else {
-    m = length(x)
-    n = length(xout)
-    # squared distance between vectors
-    d <- matrix(rep(x^2, n), nrow=m)  +  matrix(rep(xout^2, m), nrow=m, byrow=TRUE) - 2 * tcrossprod(x,xout)
-    return(y[apply(d,2,which.min)])
-  }
-}
-
-# fensholt and proud gap filling algorithm
-fnp <- function(y,ws=2) {
-  # compute mean y values within a given window size
-  # ws = window size
-  if(!ws %in% 1:2)
-    stop("window size should be 1 or 2")
-  l <- length(y)
-  nn <- pmin(1, l)
-  isna <- is.na(y)
-  if(!any(isna)){
-    return(y)
-  } else {
-    # rbind the signal with a lag and lead of 1
-    y1 <- rbind(c(y[-seq_len(nn)], NA),c(NA, y[seq_len(l - nn)])) # this is refactored from dplyr::lead and dplyr::lag
-    y[isna] <- colMeans(y1[,isna,drop=F],na.rm=T)
-    isnan <- is.nan(y)
-    if(any(isnan)&ws==2){
-      # lag of 2
-      y2 <-  rbind(c(y1[1,-seq_len(nn)],NA),c(NA, y1[2,seq_len(l - nn)]))
-      y[isnan] <- colMeans(y2[,isnan,drop=F],na.rm=T)
-    }
-    y[is.nan(y)] <- NA
-    return(y)
-  }
-}
-
-# whittaker interpolator
-whittaker <- function(y,x,xout,w,lambda,nIter) {
-  # upper enveloppe fitting, see Atzerberg and Eiler, 2003
-  # all observed values
-  # that lie below the fitted curve (or that were missing/flagged values) are
-  # replaced by their fitted value. With the updated values, the smoothing is
-  # repeated
-
-  # add a safe length of data (because layer doy + effective composite doy)
-  vec0 <- rep(0,max(x,xout) - min(x,xout) - 1  + 30)
-  names(vec0) <- 1:length(vec0)
-  y_long <- w_long <- vec0
-  y_long[x] <- y
-  w_long[x] <- w
-
-  for(i in 1:nIter)
-  {
-    fTS <- ptw::whit2(y_long,w=w_long,lambda=lambda)
-    idx <- y_long < fTS
-    y_long[idx] <- fTS[idx]
-  }
-  names(fTS) <- names(vec0)
-  fTS[xout]
-}
