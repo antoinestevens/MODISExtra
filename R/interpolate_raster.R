@@ -130,7 +130,7 @@ interpolate_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
       warning(paste0("df should be in 1 < df <= nlayers(x). The parameter is adapted to: ",df))
     }
   }
-  
+
   .process_raster(x,w,t,timeInfo,
                   fun = .interp,
                   args = list(method = method,lambda = lambda,nIter = nIter,
@@ -260,11 +260,10 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
     if(nlayers(x) != nlayers(t))
       stop("x and t rasters have a different number of bands")
   }
-  
+
   b <- list()
   b[[1]] <- brick(x,nl=as.integer(length(timeInfo$outSeq)), values=FALSE)
   b[[1]] <- writeStart(b[[1]],filename, datatype=datatype, ...)
-
   tr <- blockSize(x)
   if (missing(cores))
   {
@@ -314,11 +313,11 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
 {
   # nearest neighbour interpolator
   nn <- function(y,x,xout) {
-    x <- x[x!=0] 
-    m <- max(c(x,xout),na.rm=T)
+    x <- x[x!=0]
+    m <- max(c(x[length(x)],xout),na.rm=T)
     zx  <- 1:m
     z <-  c(0,x[-1] - (diff(x)/2),m)
-    z <- as.numeric(cut(zx,z,include.lowest=T))
+    z <- findInterval(zx,z,rightmost.closed = T)
     z <- z[xout]
     return(y[z])
   }
