@@ -429,6 +429,22 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
     kickOutlier <- function(y,w,lambda,threshold)
       return(w)
   }
+  
+  # Generate a interpolation function (to avoid a per pixel if)
+  if(method=="spline"){
+    myinterp <- function()stats::predict(smooth.spline(y=val[u,],x=inTu[u,],w=wtu[u,],df=df, tol=1), outTu[u,])$y
+  } else if(method %in% c("constant","linear")){
+    myinterp <- myinterp <- function()stats::approx(y=val[u,],x= inTu[u,] , outTu[u,],rule=2,method = method)$y
+  } else if(method == "nn"){
+    myinterp <- myinterp <- function()nn(val[u,],inTu[u,],outTu[u,]) # nearest neighbour
+  } else if (method =="whittaker"){
+    myinterp <- function(){
+      wtu[u,] <- kickOutlier(val[u,], wtu[u,], lambda=lambda,threshold=outlierThreshold) # assign w to 0 for outliers
+      whittaker(val[u,], inTu[u,], outTu[u,], wtu[u,],lambda = lambda, nIter = nIter) # whittaker interpolation
+    }
+  } else if (method =="fensholt"){
+    myinterp <- function()fnp(val[u,],ws=2)
+  }
 
   # generate output matrix
   if (is.null(timeInfo)|gap)
@@ -454,37 +470,19 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
   else
     Cvec <- rowSums(!isna) >= minDat
 
-  if(!gap){ # better to place the if outside the loop (not sure this is so much faster, though)
+  if(!gap){ 
     for (u in (1:yRow)[Cvec])
-    {
-      if(method=="spline"){
-        out[u,] <- stats::predict(smooth.spline(y=val[u,],x=inTu[u,],w=wtu[u,],df=df, tol=1), outTu[u,])$y
-      } else if(method %in% c("constant","linear")){
-        out[u,] <- stats::approx(y=val[u,],x= inTu[u,] , outTu[u,],rule=2,method = method)$y
-      } else if(method == "nn"){
-        out[u,] <- nn(val[u,],inTu[u,],outTu[u,]) # nearest neighbour
-      } else if (method =="whittaker"){
-        wtu[u,] <- kickOutlier(val[u,], wtu[u,], lambda=lambda,threshold=outlierThreshold) # assign w to 0 for outliers
-        out[u,] <- whittaker(val[u,], inTu[u,], outTu[u,], wtu[u,],lambda = lambda, nIter = nIter) # whittaker interpolation
-      }
-    }
+      out[u,] <- myinterp()
   } else {
     for (u in (1:yRow)[Cvec])
     {
       isna <- set0[u,]
       if(any(isna)){
-        if(method=="spline"){
-          out[u,isna] <- stats::predict(smooth.spline(y=val[u,], x=inTu[u,], wtu[u,], df=df, tol=1), outTu[u,])$y[isna]
-        } else if(method %in% c("constant","linear")){
-          out[u,isna] <- stats::approx(y=val[u,], x=inTu[u,] , xout = outTu[u,],rule=2,method = method)$y[isna]
-        } else if(method == "nn"){
-          out[u,isna] <- nn(y=val[u,],x=inTu[u,],xout = outTu[u,])[isna] # nearest neighbour
-        } else if (method =="whittaker"){
-          wtu[u,] <- kickOutlier(y=val[u,], w=wtu[u,], lambda=lambda,threshold=outlierThreshold) # assign w to 0 for outliers
-          out[u,isna] <- whittaker(y=val[u,], x=inTu[u,], xout = outTu[u,], w=wtu[u,],lambda = lambda, nIter = nIter)[isna] # whittaker interpolation
-        } else {
-          out[u,] <- fnp(val[u,],ws=2) # fensholt and proud
-        }
+        if(method=="fensholt")
+          out[u,] <- myinterp()
+        else
+          out[u,isna] <- myinterp()[isna]
+        
       } else {
         out[u,] <- val[u,] # do nothing if no NA's
       }
