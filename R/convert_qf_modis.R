@@ -1,12 +1,13 @@
 #' @title Convert bit values from a QFLAG MODIS product
 #' @description Convert a Raster* object representing MODIS QFLAG bit values to a Raster* with two categories representing flagged and non-flagged pixels
-#' @usage convert_qf_modis(r,qf,type,filename = rasterTmpFile(), ...)
+#' @usage convert_qf_modis(r,qf,type,cores,filename = rasterTmpFile(), ...)
 #' @param r A \code{\link[raster]{Raster-class}} object
 #' @param qf Quality Flag to be extracted. Can be more than one of these:
 #' If type = 'MOD13': 'MODLAND_QA','VI_usefulness','aerosol_quantity','adjacent_cloud','atmosphere_brdf','mixed_clouds','land_water_flag','snow','shadow'.
 #' If type = 'MOD15':'MODLAND_QC','sensor','dead_detector','cloud','scf_qc'.
 #' If type = 'MOD15Extra':'sea', 'snow', 'aerosol', 'cirrus', 'cloud', 'shadow', 'biome'
 #' @param type character \code{vector} of length 1 giving the MODIS data type. Should be one of these: 'MOD13', 'MOD15', 'MOD15Extra'
+#' @param cores number of cores used when interpolating. Default is 1.
 #' @param filename Passed to \code{\link[raster]{writeRaster}}.
 #' @param ... arguments passed to \code{\link[raster]{writeRaster}}.
 #' @return A \code{\link[raster]{RasterBrick-class}} object with two values (1,0), representing respectively pixels that are flagged by at least one of the give \code{qf},
@@ -16,7 +17,7 @@
 #' @seealso \code{\link[MODIS]{extractBits}} and \code{\link{interpolate_raster}} for an example
 #' @author Antoine Stevens
 #' @export
-convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename = rasterTmpFile(), ...){
+convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cores, filename = rasterTmpFile(), ...){
 
   if (!inherits(r, "Raster"))
     stop("r should be a Raster* object")
@@ -32,7 +33,7 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename
   } else {
     pattern <- c("sea", "snow", "aerosol", "cirrus", "cloud", "shadow", "biome")
   }
-  
+
   q <- stringr::str_detect(paste(qf,collapse="|"),pattern)
 
   if(!sum(q))
@@ -41,14 +42,48 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename
   b <- list()
   b[[1]] <- brick(r,nl=nlayers(r), values=FALSE)
   b[[1]] <- writeStart(b[[1]], filename = filename,...)
-  
+
   tr <- blockSize(r)
   for ( i in seq_along(tr$row))
-    b[[1]] <- writeValues(b[[1]], .convert_qf_mod(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type), tr$row[i])
-  
+
+
+  if (missing(cores))
+  {
+    for ( i in seq_along(tr$row) )
+      b[[1]] <- writeValues(b[[1]], .convert_qf_mod(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type), tr$row[i])
+  } else
+  {
+
+    beginCluster(cores)
+
+    cl <- getCluster()
+    on.exit(endCluster())
+
+    # send expr and data to cluster nodes
+    parallel::clusterEvalQ(cl,{library(sfsmisc)})
+    # number of blocks
+    tr <- blockSize(x, minblocks=cores)
+    for (i in 1:cores)
+      parallel:::sendCall(cl[[i]],.convert_qf_mod,list(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type),tag=i)
+
+    for (i in 1:tr$n)
+    {
+      d <- parallel:::recvOneData(cl);
+
+      if (!d$value$success)
+        stop("Cluster error in Row: ", tr$row[d$value$tag],"\n")
+
+      b[[1]] <- writeValues(b[[1]], d$value$value, tr$row[d$value$tag])
+
+      ni <- cores + i
+      if (ni <= tr$n)
+        parallel:::sendCall(cl[[d$node]],.convert_qf_mod,list(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type),tag=ni)
+    }
+  }
+
   for (a in seq_along(b))
     b[[a]] <- writeStop(b[[a]])
-  
+
   b <- brick(filename)
   names(b) <- names(r)
 
@@ -94,10 +129,10 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), filename
   }
   if(sum(q)==1)
     pat <- get(pattern[q])
-  else 
+  else
     pat <- as.numeric(as.logical(do.call(pmax,lapply(pattern[q], function(x)get(x)))))
   # replace values
   names(pat)  <- lev
-  val <- matrix(pat[as.character(val)],nrow=nrow(val),ncol=ncol(val))  
+  val <- matrix(pat[as.character(val)],nrow=nrow(val),ncol=ncol(val))
   val
 }
