@@ -169,7 +169,6 @@ runGdal <- function (product, collection = NULL, begin = NULL, end = NULL,
     q <- T
   else
     q <- F
-
   # Download, extract and project
   for (z in seq_along(product$PRODUCT)) {
     todo <- paste(product$PRODUCT[z], ".", product$CCC[[product$PRODUCT[z]]], sep = "")
@@ -246,7 +245,7 @@ runGdal <- function (product, collection = NULL, begin = NULL, end = NULL,
                 gdalSDS <- randomName
               }
               # extract and project
-              ifile <- paste0(gdalSDS, collapse = "' '")
+              ifile <-gdalSDS
               ofile <- paste0(outDir, "/", outname)
               args <- list(srcfile = ifile, dstfile = ofile, s_srs = s_srs, t_srs = t_srs,
                            of = of, te = te, tr = tr,
