@@ -1,7 +1,7 @@
 #' @title Convert MODIS files
 #' @description Convert MODIS files into a Raster* object, and possibly convert raw DN to physical values.
 #' @usage convert_modis(path = ".", pattern = NULL, type, convertDN = TRUE,
-#'                      extractAll = FALSE, filename = rasterTmpFile(),
+#'                      extractAll = FALSE, filename = rasterTmpFile(), datatype = "FLT4S",
 #'                      overwrite = TRUE, ...)
 #' @param path Path to the folder where MODIS files are stored. Default is the working directory. See \code{\link[MODIS]{preStack}}.
 #' @param pattern optional regular expression, only file names matching the regular expression will be extracted. See \code{\link[MODIS]{preStack}}.
@@ -12,6 +12,7 @@
 #' @param extractAll a logical value indicating whether time info, file names and date object should be returned in addition to the processed raster object.
 #' Default is \code{FALSE}.
 #' @param filename Passed to \code{\link[raster]{writeRaster}}.
+#' @param datatype Passed to \code{\link[raster]{writeRaster}}.
 #' @param overwrite Passed to \code{\link[raster]{writeRaster}}.
 #' @param ... arguments passed to \code{\link{orgTime}} (for instance to restrict the studied period with \code{begin} or \code{end}
 #'        or define new time stamps to interpolate to with \code{nDays})
@@ -37,7 +38,7 @@
 #' }
 #'
 #' @export
-convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extractAll = FALSE,filename = rasterTmpFile(),overwrite = TRUE,...) {
+convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extractAll = FALSE,filename = rasterTmpFile(),datatype="FLT4S",overwrite = TRUE,...) {
 
   capture.output(fn <- preStack(path = path, pattern = pattern)) # capture.output to ignore annoying calls to print in preStack
 
@@ -84,7 +85,7 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
   # names(modis) <- format(d$inputLayerDates,"%Y_%m_%d")
 
   # Convert to brick and write to disk
-  modis <- writeRaster(modis,filename = filename,overwrite = overwrite)
+  modis <- writeRaster(modis,filename = filename,datatype = datatype,overwrite = overwrite)
 
   meta_list <- list()
   # assign result to global env

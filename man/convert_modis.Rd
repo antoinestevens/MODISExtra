@@ -5,7 +5,7 @@
 \title{Convert MODIS files}
 \usage{
 convert_modis(path = ".", pattern = NULL, type, convertDN = TRUE,
-                     extractAll = FALSE, filename = rasterTmpFile(),
+                     extractAll = FALSE, filename = rasterTmpFile(), datatype = "FLT4S",
                      overwrite = TRUE, ...)
 }
 \arguments{
@@ -23,6 +23,8 @@ See \code{\link{convert_dn_modis}}. Default is \code{TRUE}.}
 Default is \code{FALSE}.}
 
 \item{filename}{Passed to \code{\link[raster]{writeRaster}}.}
+
+\item{datatype}{Passed to \code{\link[raster]{writeRaster}}.}
 
 \item{overwrite}{Passed to \code{\link[raster]{writeRaster}}.}
 
