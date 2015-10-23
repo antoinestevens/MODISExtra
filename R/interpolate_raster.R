@@ -434,9 +434,9 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
   if(method=="spline"){
     myinterp <- function()stats::predict(smooth.spline(y=val[u,],x=inTu[u,],w=wtu[u,],df=df, tol=1), outTu[u,])$y
   } else if(method %in% c("constant","linear")){
-    myinterp <- myinterp <- function()stats::approx(y=val[u,],x= inTu[u,] , outTu[u,],rule=2,method = method)$y
+    myinterp <- function()stats::approx(y=val[u,],x= inTu[u,] , outTu[u,],rule=2,method = method)$y
   } else if(method == "nn"){
-    myinterp <- myinterp <- function()nn(val[u,],inTu[u,],outTu[u,]) # nearest neighbour
+    myinterp <- function()nn(val[u,],inTu[u,],outTu[u,]) # nearest neighbour
   } else if (method =="whittaker"){
     myinterp <- function(){
       wtu[u,] <- kickOutlier(val[u,], wtu[u,], lambda=lambda,threshold=outlierThreshold) # assign w to 0 for outliers
