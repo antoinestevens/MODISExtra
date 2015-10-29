@@ -6,7 +6,7 @@
 \usage{
 gapfill_raster(x, w=NULL, t=NULL, timeInfo = orgTime(x), method,
                       lambda = 5000, nIter= 3, outlierThreshold = NULL,
-                      df = 6, ws = 2, cores, filename=rasterTmpFile(),...)
+                      df = 6, ws = 2, cl = NULL, filename=rasterTmpFile(),...)
 }
 \arguments{
 \item{x}{A \code{\link[raster]{Raster-class}} object to interpolate}
@@ -33,7 +33,7 @@ whittaker function and removing values with residuals higher than \code{outlierT
 
 \item{ws}{window size for the `fensholt` \code{method}. Default to 2. See details}
 
-\item{cores}{number of cores used when interpolating. Default is 1.}
+\item{cl}{cluster object for parallel processing (do not use it if beginCluster() has been called. Default is \code{NULL}}
 
 \item{filename}{name of the file where the interpolated raster is saved. Default is created through \code{\link[raster]{rasterTmpFile}}}
 

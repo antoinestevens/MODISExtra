@@ -4,7 +4,7 @@
 \alias{convert_qf_modis}
 \title{Convert bit values from a QFLAG MODIS product}
 \usage{
-convert_qf_modis(r,qf,type,cores,filename = rasterTmpFile(), ...)
+convert_qf_modis(r,qf,type,cl = NULL,filename = rasterTmpFile(), ...)
 }
 \arguments{
 \item{r}{A \code{\link[raster]{Raster-class}} object}
@@ -16,7 +16,7 @@ If type = 'MOD15Extra':'sea', 'snow', 'aerosol', 'cirrus', 'cloud', 'shadow', 'b
 
 \item{type}{character \code{vector} of length 1 giving the MODIS data type. Should be one of these: 'MOD13', 'MOD15', 'MOD15Extra'}
 
-\item{cores}{number of cores used when interpolating. Default is 1.}
+\item{cl}{cluster object for parallel processing. Default is \code{NULL}}
 
 \item{filename}{Passed to \code{\link[raster]{writeRaster}}.}
 

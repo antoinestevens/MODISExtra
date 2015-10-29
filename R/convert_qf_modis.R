@@ -1,13 +1,13 @@
 #' @title Convert bit values from a QFLAG MODIS product
 #' @description Convert a Raster* object representing MODIS QFLAG bit values to a Raster* with two categories representing flagged and non-flagged pixels
-#' @usage convert_qf_modis(r,qf,type,cores,filename = rasterTmpFile(), ...)
+#' @usage convert_qf_modis(r,qf,type,cl = NULL,filename = rasterTmpFile(), ...)
 #' @param r A \code{\link[raster]{Raster-class}} object
 #' @param qf Quality Flag to be extracted. Can be more than one of these:
 #' If type = 'MOD13': 'MODLAND_QA','VI_usefulness','aerosol_quantity','adjacent_cloud','atmosphere_brdf','mixed_clouds','land_water_flag','snow','shadow'.
 #' If type = 'MOD15':'MODLAND_QC','sensor','dead_detector','cloud','scf_qc'.
 #' If type = 'MOD15Extra':'sea', 'snow', 'aerosol', 'cirrus', 'cloud', 'shadow', 'biome'
 #' @param type character \code{vector} of length 1 giving the MODIS data type. Should be one of these: 'MOD13', 'MOD15', 'MOD15Extra'
-#' @param cores number of cores used when interpolating. Default is 1.
+#' @param cl cluster object for parallel processing. Default is \code{NULL}
 #' @param filename Passed to \code{\link[raster]{writeRaster}}.
 #' @param ... arguments passed to \code{\link[raster]{writeRaster}}.
 #' @return A \code{\link[raster]{RasterBrick-class}} object with two values (1,0), representing respectively pixels that are flagged by at least one of the give \code{qf},
@@ -17,8 +17,12 @@
 #' @seealso \code{\link[MODIS]{extractBits}} and \code{\link{interpolate_raster}} for an example
 #' @author Antoine Stevens
 #' @export
-convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cores, filename = rasterTmpFile(), ...){
-
+convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cl = NULL, filename = rasterTmpFile(), ...){
+  
+  if(!is.null(cl))
+    if(!"cluster"%in%class(cl))
+      stop("cl should be a cluster object. See ?getCluster")
+      
   if (!inherits(r, "Raster"))
     stop("r should be a Raster* object")
 
@@ -42,34 +46,24 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cores, f
   b <- list()
   b[[1]] <- brick(r,nl=nlayers(r), values=FALSE)
   b[[1]] <- writeStart(b[[1]], filename = filename,...)
-
-  tr <- blockSize(r)
-  for ( i in seq_along(tr$row))
-
-
-  if (missing(cores))
-  {
+  
+  if (is.null(cl)) {
+    tr <- blockSize(r)
     for ( i in seq_along(tr$row) )
       b[[1]] <- writeValues(b[[1]], .convert_qf_mod(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type), tr$row[i])
-  } else
-  {
-
-    beginCluster(cores)
-
-    cl <- getCluster()
-    on.exit(endCluster())
-
+  } else {
+    
+    cores <- length(cl)
     # send expr and data to cluster nodes
     parallel::clusterEvalQ(cl,{library(sfsmisc)})
     # number of blocks
-    tr <- blockSize(x, minblocks=cores)
+    tr <- blockSize(r, minblocks=cores)
     for (i in 1:cores)
-      parallel:::sendCall(cl[[i]],.convert_qf_mod,list(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type),tag=i)
+      raster:::.sendCall(cl[[i]],.convert_qf_mod,list(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type),tag=i)
 
     for (i in 1:tr$n)
     {
-      d <- parallel:::recvOneData(cl);
-
+      d <- raster:::.recvOneData(cl);
       if (!d$value$success)
         stop("Cluster error in Row: ", tr$row[d$value$tag],"\n")
 
@@ -77,7 +71,7 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cores, f
 
       ni <- cores + i
       if (ni <= tr$n)
-        parallel:::sendCall(cl[[d$node]],.convert_qf_mod,list(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type),tag=ni)
+        raster:::.sendCall(cl[[d$node]],.convert_qf_mod,list(i = ni, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type),tag=ni)
     }
   }
 
@@ -94,7 +88,10 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cores, f
 
 .convert_qf_mod <- function(i,r,row,nrows,pattern,q,type){
   val  <-  raster::getValues(r, row=row[i], nrows=nrows[i])
-  lev <- sort(unique(as.vector(val)))
+  n <- nrow(val)
+  p <- ncol(val)
+  val <- as.factor(val)
+  lev <- as.numeric(levels(val))
   # This binary bit-string is parsed from right to left, and the individual bits within a bit-field are read from left to right
   # All	HDF-EOS	products	are	written	in	the	big-endian	referencing	scheme.	The	bits are always	numbered
   # from	right	(least-significant	bit)	to	left	(most-significant	bit).
@@ -132,7 +129,6 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cores, f
   else
     pat <- as.numeric(as.logical(do.call(pmax,lapply(pattern[q], function(x)get(x)))))
   # replace values
-  names(pat)  <- lev
-  val <- matrix(pat[as.character(val)],nrow=nrow(val),ncol=ncol(val))
+  val <- matrix(pat[as.numeric(val)],nrow=n,ncol=p)
   val
 }
