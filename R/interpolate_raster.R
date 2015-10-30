@@ -270,6 +270,8 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
   # filename = rasterTmpFile()
   b <- list()
   b[[1]] <- brick(x,nl=as.integer(length(timeInfo$outSeq)), values=FALSE)
+  b[[1]] <- setZ(b[[1]],timeInfo$outputLayerDates)
+  names(b[[1]]) <- format(timeInfo$outputLayerDates,"%Y_%m_%d")
   b[[1]] <- writeStart(b[[1]],filename, datatype=datatype, ...)
 
   if (is.null(cl)) {
@@ -305,8 +307,6 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
     b[[a]] <- writeStop(b[[a]])
 
   b <- brick(filename)
-  b <- setZ(b,timeInfo$outputLayerDates)
-  names(b) <- format(timeInfo$outputLayerDates,"%Y_%m_%d")
   return(b)
 }
 

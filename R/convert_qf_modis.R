@@ -45,6 +45,9 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cl = NUL
 
   b <- list()
   b[[1]] <- brick(r,nl=nlayers(r), values=FALSE)
+  names(b[[1]]) <- names(r)
+  if(length(getZ(r)))
+    b[[1]] <- setZ(b[[1]],getZ(r))
   b[[1]] <- writeStart(b[[1]], filename = filename,...)
   
   if (is.null(cl)) {
@@ -79,10 +82,6 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cl = NUL
     b[[a]] <- writeStop(b[[a]])
 
   b <- brick(filename)
-  names(b) <- names(r)
-
-  if(length(getZ(r)))
-     b <- setZ(b,getZ(r))
   b
 }
 

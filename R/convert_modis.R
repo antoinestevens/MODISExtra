@@ -148,7 +148,11 @@ convert_dn_modis <- function(r,type = c("Fpar_1km","Lai_1km","FparLai_QC","FparE
     stop("type should be of length 1")
 
   n <- names(r)
-
+  if(length(getZ(r)))
+    d <- getZ(r)
+  else
+    d <- NULL
+  
   if(missing(type)){
     type <- stringr::str_extract(n[1],"Fpar_1km|Lai_1km|FparLai_QC|FparExtra_QC|FparStdDev_1km|LaiStdDev_1km|NDVI|EVI|VI|red|NIR|view_zenith_angle|sun_zenith_angle|relative_azimuth_angle|composite_day_of_the_year|pixel_reliability")
     if(is.na(type))
@@ -180,5 +184,7 @@ convert_dn_modis <- function(r,type = c("Fpar_1km","Lai_1km","FparLai_QC","FparE
   if(!is.na(trans_fac[1]))
     gain(r) <-  trans_fac[1] # apply scale factor
   names(r) <- n
+  if(!is.null(d))
+    r <- setZ(r,d)
   r
 }
