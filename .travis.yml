@@ -7,6 +7,9 @@ sudo: required
 r_binary_packages:
   - rgdal
 
+r_github_packages:
+ - rforge/modis/pkg/MODIS
+
 env:
  global:
    - CRAN: http://cran.rstudio.com
