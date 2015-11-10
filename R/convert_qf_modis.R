@@ -18,11 +18,11 @@
 #' @author Antoine Stevens
 #' @export
 convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cl = NULL, filename = rasterTmpFile(), ...){
-  
+
   if(!is.null(cl))
     if(!"cluster"%in%class(cl))
       stop("cl should be a cluster object. See ?getCluster")
-      
+
   if (!inherits(r, "Raster"))
     stop("r should be a Raster* object")
 
@@ -49,24 +49,24 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cl = NUL
   if(length(getZ(r)))
     b[[1]] <- setZ(b[[1]],getZ(r))
   b[[1]] <- writeStart(b[[1]], filename = filename,...)
-  
+
   if (is.null(cl)) {
     tr <- blockSize(r)
     for ( i in seq_along(tr$row) )
       b[[1]] <- writeValues(b[[1]], .convert_qf_mod(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type), tr$row[i])
   } else {
-    
+
     cores <- length(cl)
     # send expr and data to cluster nodes
-    parallel::clusterEvalQ(cl,{library(sfsmisc)})
+    # parallel::clusterEvalQ(cl,{library(sfsmisc)})
     # number of blocks
     tr <- blockSize(r, minblocks=cores)
     for (i in 1:cores)
-      raster:::.sendCall(cl[[i]],.convert_qf_mod,list(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type),tag=i)
+      .sendCall(cl[[i]],.convert_qf_mod,list(i = i, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type),tag=i)
 
     for (i in 1:tr$n)
     {
-      d <- raster:::.recvOneData(cl);
+      d <- .recvOneData(cl);
       if (!d$value$success)
         stop("Cluster error in Row: ", tr$row[d$value$tag],"\n")
 
@@ -74,7 +74,7 @@ convert_qf_modis <- function(r,qf,type=c("MOD13","MOD15","MOD15Extra"), cl = NUL
 
       ni <- cores + i
       if (ni <= tr$n)
-        raster:::.sendCall(cl[[d$node]],.convert_qf_mod,list(i = ni, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type),tag=ni)
+        .sendCall(cl[[d$node]],.convert_qf_mod,list(i = ni, r = r, row = tr$row, nrows = tr$nrow,pattern = pattern,q = q, type = type),tag=ni)
     }
   }
 

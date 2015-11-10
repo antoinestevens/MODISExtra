@@ -1,3 +1,7 @@
+# get non-exported function (copied from the raster package)
+.recvOneData <- eval(parse(text="parallel:::recvOneData"))
+.sendCall <- eval( parse( text="parallel:::sendCall") )
+
 #' @title Interpolate a Raster* time series to new time stamps (temporal resampling)
 #' @description Interpolate Raster* times series to new time stamps
 #' @usage interpolate_raster(x, w = NULL, t = NULL, timeInfo = orgTime(x),
@@ -282,15 +286,15 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
 
     cores <- length(cl)
     # send expr and data to cluster nodes
-    parallel::clusterEvalQ(cl,{library(MODIS);library(rgdal);library(raster);library(ptw);library(matrixStats)})
+    # parallel::clusterEvalQ(cl,{library(MODIS);library(rgdal);library(raster);library(ptw);library(matrixStats)})
     # number of blocks
     tr <- blockSize(x, minblocks=cores)
     for (i in 1:cores)
-      raster:::.sendCall(cl[[i]],fun,c(list(i = i, row = tr$row, nrows = tr$nrow, x = x, w = w, t = t,  timeInfo = timeInfo), args),tag=i)
+      .sendCall(cl[[i]],fun,c(list(i = i, row = tr$row, nrows = tr$nrow, x = x, w = w, t = t,  timeInfo = timeInfo), args),tag=i)
 
     for (i in 1:tr$n)
     {
-      d <- raster:::.recvOneData(cl);
+      d <- .recvOneData(cl);
 
       if (!d$value$success)
         stop("Cluster error in Row: ", tr$row[d$value$tag],"\n")
@@ -299,7 +303,7 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
 
       ni <- cores + i
       if (ni <= tr$n)
-        raster:::.sendCall(cl[[d$node]],fun,c(list(i = ni, row = tr$row, nrows = tr$nrow, x = x, w = w, t = t, timeInfo = timeInfo), args),tag=ni)
+        .sendCall(cl[[d$node]],fun,c(list(i = ni, row = tr$row, nrows = tr$nrow, x = x, w = w, t = t, timeInfo = timeInfo), args),tag=ni)
     }
   }
 
@@ -316,6 +320,7 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
   # nearest neighbour interpolator
   nn <- function(y,x,xout) {
     x <- x[x!=0]
+    x <- x[!is.na(x)]
     m <- max(c(x[length(x)],xout),na.rm=T)
     zx  <- 1:m
     z <-  c(0,x[-1] - (diff(x)/2),m)

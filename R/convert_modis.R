@@ -76,13 +76,13 @@ convert_modis <- function(path = ".",pattern = NULL,type,convertDN = TRUE,extrac
     names(modis_list)[2] <- "raster_fill"
   }
 
-  # convert DN to VI
-  if(convertDN)
-    modis <- convert_dn_modis(modis,type)
-
   # Set time info
   modis <- setZ(modis,d$inputLayerDates)
   # names(modis) <- format(d$inputLayerDates,"%Y_%m_%d")
+
+  # convert DN to VI
+  if(convertDN)
+    modis <- convert_dn_modis(modis,type)
 
   # Convert to brick and write to disk
   modis <- writeRaster(modis,filename = filename,datatype = datatype,overwrite = overwrite)
@@ -152,7 +152,7 @@ convert_dn_modis <- function(r,type = c("Fpar_1km","Lai_1km","FparLai_QC","FparE
     d <- getZ(r)
   else
     d <- NULL
-  
+
   if(missing(type)){
     type <- stringr::str_extract(n[1],"Fpar_1km|Lai_1km|FparLai_QC|FparExtra_QC|FparStdDev_1km|LaiStdDev_1km|NDVI|EVI|VI|red|NIR|view_zenith_angle|sun_zenith_angle|relative_azimuth_angle|composite_day_of_the_year|pixel_reliability")
     if(is.na(type))
