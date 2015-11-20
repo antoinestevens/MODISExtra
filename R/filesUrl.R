@@ -16,10 +16,9 @@
 filesUrl <- function(url)
 {
   # use now rvest instead of old RCurl
-
   if (substr(url,nchar(url),nchar(url))!="/")
     url <- paste0(url,"/")
-  try(co <- rvest::html(url,httr::timeout(5)),silent=TRUE)
+  try(co <- rvest::html(url),silent=TRUE)
   if (class(co)[1]=="try-error"|as(co,"character")=="")
     return(NULL)
   fnames <- character(0)
@@ -28,7 +27,7 @@ filesUrl <- function(url)
     co <- rvest::html_nodes(co,"a")
     if(!length(co)){  # try a second time (sometimes, the file list is not returned by the http request the first time it is GET)
       Sys.sleep(0.1)
-      try(co <- rvest::html(url,httr::timeout(5)),silent=TRUE)
+      try(co <- rvest::html(url),silent=TRUE)
       if (class(co)[1]=="try-error")
         return(co)
       co <- rvest::html_nodes(co,"a")
