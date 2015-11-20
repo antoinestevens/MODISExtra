@@ -4,22 +4,24 @@ Title: Download and extract MODIS imagery
 Version: 0.2.0
 Author: Antoine Stevens and Matteo Mattiuzzi
 Maintainer: Antoine Stevens <antoinexstevens@gmail.com>
-Description: Provides small modifications to some of the functions in MODIS package + a few new utilities.
+Description: Provides small modifications to some of the functions in MODIS
+    package + a few new utilities.
 License: GPL-3
 LazyData: TRUE
 Depends:
-   R (>= 3.0.1)
+    R (>= 3.0.1)
 Imports:
-  foreach,
-  MODIS,
-  gdalUtils,
-  httr,
-  matrixStats,
-  ptw,
-  raster,
-  rgdal,
-  rgeos,
-  rvest,
-  sfsmisc,
-  stringr,
-  tools
+    foreach,
+    MODIS,
+    gdalUtils,
+    httr,
+    matrixStats,
+    ptw,
+    raster,
+    rgdal,
+    rgeos,
+    rvest,
+    sfsmisc,
+    stringr,
+    tools
+RoxygenNote: 5.0.1

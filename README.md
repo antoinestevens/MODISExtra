@@ -1,3 +1,5 @@
+[![Travis-CI Build Status](https://travis-ci.org/antoinestevens/MODISExtra.svg?branch=master)](https://travis-ci.org/antoinestevens/MODISExtra)
+
 # Access and process MODIS data with MODIS and MODISExtra 
 
 The aim of `MODISExtra` was to modify a few lines of code in the [`MODIS`](https://r-forge.r-project.org/R/?group_id=1252) package, to address some research needs. There are also a few new functions to perform e.g. temporal resampling (`interpolate_raster`), convert MODIS DN to physical values (`convert_dn_modis`) or MODIS Quality Flags (`convert_qf_modis`)
