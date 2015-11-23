@@ -26,7 +26,7 @@ runGdal <- function (product, collection = NULL, begin = NULL, end = NULL,
 {
 
   gdalUtils::gdal_setInstallation(search_path = gdalPath)
-  opts <- MODIS:::combineOptions(...)
+  opts <- .combineOptions(...)
 
   product <- getProduct(product, quiet = TRUE)
   product$CCC <- getCollection(product, collection = collection)
@@ -43,14 +43,14 @@ runGdal <- function (product, collection = NULL, begin = NULL, end = NULL,
     dataFormat <- "GTIFF"
 
   if (is.null(opts$gdalOutDriver)) {
-    opts$gdalOutDriver <- MODIS:::gdalWriteDriver()
+    opts$gdalOutDriver <- .gdalWriteDriver()
     options(MODIS_gdalOutDriver = opts$gdalOutDriver)
   }
 
   if (dataFormat %in% toupper(opts$gdalOutDriver$name)) {
     dataFormat <- grep(opts$gdalOutDriver$name, pattern = paste("^", dataFormat, "$", sep = ""), ignore.case = TRUE, value = TRUE)
     of <- dataFormat
-    extension <-MODIS:::getExtension(dataFormat)
+    extension <-.getExtension(dataFormat)
   }
   else {
     stop("in argument dataFormat='", opts$dataFormat, "', format not supported by GDAL type: 'gdalWriteDriver()' (column 'name') to list available inputs")
@@ -71,11 +71,11 @@ runGdal <- function (product, collection = NULL, begin = NULL, end = NULL,
   t_srs <- NULL
   cat("########################\n")
   if (!is.null(extent$target$outProj)) {
-    outProj <- MODIS:::checkOutProj(extent$target$outProj, tool = "GDAL")
+    outProj <- .checkOutProj(extent$target$outProj, tool = "GDAL")
     cat("outProj          = ", outProj, " (Specified by raster*/spatial* object)\n")
   }
   else {
-    outProj <- MODIS:::checkOutProj(opts$outProj, tool = "GDAL")
+    outProj <- .checkOutProj(opts$outProj, tool = "GDAL")
     cat("outProj          = ", outProj, "\n")
   }
   if (outProj == "asIn") {
@@ -113,7 +113,7 @@ runGdal <- function (product, collection = NULL, begin = NULL, end = NULL,
   }
 
   # set resampling type
-  opts$resamplingType <- MODIS:::checkResamplingType(opts$resamplingType, tool = "gdal")
+  opts$resamplingType <- .checkResamplingType(opts$resamplingType, tool = "gdal")
   cat("resamplingType   = ", opts$resamplingType, "\n")
   r <- opts$resamplingType
 
@@ -188,11 +188,11 @@ runGdal <- function (product, collection = NULL, begin = NULL, end = NULL,
       dir.create(opts$auxPath,showWarnings = F)
 
     } else {
-      stop("Specify an auxPath directory. See MODIS:::combineOptions()")
+      stop("Specify an auxPath directory. See .combineOptions()")
     }
     for (u in seq_along(todo)) {
       ftpdirs <- list()
-      ftpdirs[[1]] <- as.Date(MODIS:::getStruc(product = strsplit(todo[u],"\\.")[[1]][1], collection = strsplit(todo[u], "\\.")[[1]][2], begin = tLimits$begin, end = tLimits$end, server = opts$MODISserverOrder[1])$dates)
+      ftpdirs[[1]] <- as.Date(.getStruc(product = strsplit(todo[u],"\\.")[[1]][1], collection = strsplit(todo[u], "\\.")[[1]][2], begin = tLimits$begin, end = tLimits$end, server = opts$MODISserverOrder[1])$dates)
       prodname <- strsplit(todo[u], "\\.")[[1]][1]
       coll <- strsplit(todo[u], "\\.")[[1]][2]
       avDates <- ftpdirs[[1]]
@@ -219,7 +219,7 @@ runGdal <- function (product, collection = NULL, begin = NULL, end = NULL,
             }
             options(warn = w)
             if (!exists("NAS")) {
-              NAS <- MODIS:::getNa(SDS[[1]]$SDS4gdal)
+              NAS <- .getNa(SDS[[1]]$SDS4gdal)
             }
             for (i in seq_along(SDS[[1]]$SDSnames)) {
               outname <- paste0(paste0(strsplit(basename(files[1]), "\\.")[[1]][1:2], collapse = "."), ".", gsub(SDS[[1]]$SDSnames[i], pattern = " ", replacement = "_"), extension)
@@ -236,7 +236,7 @@ runGdal <- function (product, collection = NULL, begin = NULL, end = NULL,
                 if (i == 1) {
                   cat("\n###############\nM.D13C2.005 is likely to have a problem in metadata extent information, it is corrected on the fly\n###############\n")
                 }
-                ranpat <- MODIS:::makeRandomString(length = 21)
+                ranpat <- .makeRandomString(length = 21)
                 randomName <- paste0(outDir, "/deleteMe_", ranpat, ".tif")
                 on.exit(unlink(list.files(path = outDir, pattern = ranpat, full.names = TRUE), recursive = TRUE))
                 for (ix in seq_along(gdalSDS)) {

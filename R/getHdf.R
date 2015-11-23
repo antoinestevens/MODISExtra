@@ -21,9 +21,9 @@ getHdf <- function(product, begin=NULL, end=NULL, tileH=NULL, tileV=NULL, extent
   # Licence GPL v3
 
   # product="MOD13Q1"; begin="2010001"; end="2010005"; tileH=NULL; tileV=NULL; extent=NULL; collection=NULL; quiet=FALSE; wait=0.5; checkIntegrity=FALSE; z=1;u=1
-  opts <- MODIS:::combineOptions(...)
+  opts <- .combineOptions(...)
 
-  sturheit <- MODIS:::stubborn(level=opts$stubbornness)
+  sturheit <- .stubborn(level=opts$stubbornness)
   wait     <- as.numeric(wait)
 
   # TODO HdfName as regex
@@ -35,17 +35,17 @@ getHdf <- function(product, begin=NULL, end=NULL, tileH=NULL, tileV=NULL, extent
     for (i in seq_along(HdfName))
     {
       HdfName[i]     <- basename(HdfName[i]) # separate name from path
-      path           <- MODIS:::genString(HdfName[i],...)
-      path$localPath <- MODIS:::setPath(path$localPath)
+      path           <- .genString(HdfName[i],...)
+      path$localPath <- .setPath(path$localPath)
 
       if (!file.exists(paste0(path$localPath,"/",HdfName[i])))
       {
-        MODIS:::ModisFileDownloader(HdfName[i],quiet=quiet,...)
+        .ModisFileDownloader(HdfName[i],quiet=quiet,...)
       }
 
       if(checkIntegrity)
       {
-        MODIS:::doCheckIntegrity(HdfName[i], quiet=quiet,...)
+        .doCheckIntegrity(HdfName[i], quiet=quiet,...)
       }
       dates[[i]] <- paste0(path$local,"/",HdfName[i])
     }
@@ -108,13 +108,13 @@ getHdf <- function(product, begin=NULL, end=NULL, tileH=NULL, tileV=NULL, extent
             ntiles <- length(tileID)
           }
 
-          onlineInfo <- MODIS:::getStruc(product=product$PRODUCT[z],collection=product$CCC,server=opts$MODISserverOrder[1],begin=tLimits$begin,end=tLimits$end,wait=0)
+          onlineInfo <- .getStruc(product=product$PRODUCT[z],collection=product$CCC,server=opts$MODISserverOrder[1],begin=tLimits$begin,end=tLimits$end,wait=0)
           if(!is.na(onlineInfo$online))
           {
             if (!onlineInfo$online & length(opts$MODISserverOrder)==2)
             {
               cat(opts$MODISserverOrder[1]," seams not online, trying on '",opts$MODISserverOrder[2],"':\n",sep="")
-              onlineInfo <- MODIS:::getStruc(product=product$PRODUCT[z],collection=product$CCC,begin=tLimits$begin,end=tLimits$end,wait=0,server=opts$MODISserverOrder[2])
+              onlineInfo <- .getStruc(product=product$PRODUCT[z],collection=product$CCC,begin=tLimits$begin,end=tLimits$end,wait=0,server=opts$MODISserverOrder[2])
             }
 
             if(is.null(onlineInfo$dates))
@@ -148,7 +148,7 @@ getHdf <- function(product, begin=NULL, end=NULL, tileH=NULL, tileV=NULL, extent
               doy  <- as.integer(format(as.Date(dates[[l]][i,1]), "%j"))
               doy  <- sprintf("%03d",doy)
               mtr  <- rep(1,ntiles) # for file availability flaging
-              path <- MODIS:::genString(x=strsplit(todo[u],"\\.")[[1]][1],collection=strsplit(todo[u],"\\.")[[1]][2],date=dates[[l]][i,1])
+              path <- .genString(x=strsplit(todo[u],"\\.")[[1]][1],collection=strsplit(todo[u],"\\.")[[1]][2],date=dates[[l]][i,1])
 
               for(j in 1:ntiles)
               {
@@ -218,7 +218,7 @@ getHdf <- function(product, begin=NULL, end=NULL, tileH=NULL, tileV=NULL, extent
 
                         dates[[l]][i,j+1] <- HDF
 
-                        hdf <- MODIS:::ModisFileDownloader(HDF, wait=wait, quiet=quiet)
+                        hdf <- .ModisFileDownloader(HDF, wait=wait, quiet=quiet)
                         mtr[j] <- hdf
 
                       } else
@@ -234,7 +234,7 @@ getHdf <- function(product, begin=NULL, end=NULL, tileH=NULL, tileV=NULL, extent
               }
               if(checkIntegrity)
               { # after each 'i' do the sizeCheck
-                isIn <- MODIS:::doCheckIntegrity(paste0(path$localPath,dates[[l]][i,-1]), wait=wait, quiet=quiet,...)
+                isIn <- .doCheckIntegrity(paste0(path$localPath,dates[[l]][i,-1]), wait=wait, quiet=quiet,...)
               }
               suboutput[[i]] <- paste0(path$localPath,dates[[l]][i,-1])
             } # end i

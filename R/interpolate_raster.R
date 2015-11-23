@@ -94,7 +94,7 @@ interpolate_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
 
   method <- match.arg(method)
 
-  opts <- MODIS:::combineOptions(...)
+  opts <- .combineOptions(...)
 
   if(is.null(opts$datatype))
     datatype <- dataType(x)
@@ -186,7 +186,7 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
   if(method=="fensholt"&!identical(timeInfo$inputLayerDates,timeInfo$outputLayerDates))
     stop("The Fensholt and Proud method is valid only when timeInfo$inputLayerDates and timeInfo$outputLayerDates are identical")
 
-  opts <- MODIS:::combineOptions(...)
+  opts <- .combineOptions(...)
 
   if(is.null(opts$datatype))
     datatype <- dataType(x)

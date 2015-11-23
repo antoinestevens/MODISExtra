@@ -1,0 +1,13 @@
+# Get non-exported functions from MODIS
+.checkOutProj <- eval(parse(text="MODIS:::checkOutProj"))
+.checkResamplingType <- eval(parse(text="MODIS:::checkResamplingType"))
+.combineOptions <- eval(parse(text="MODIS:::combineOptions"))
+.doCheckIntegrity <- eval(parse(text="MODIS:::doCheckIntegrity"))
+.genString <- eval(parse(text="MODIS:::genString"))
+.getExtension <- eval(parse(text="MODIS:::getExtension"))
+.gdalWriteDriver <- eval(parse(text="MODIS:::gdalWriteDriver"))
+.getNa <- eval(parse(text="MODIS:::getNa"))
+.makeRandomString <- eval(parse(text="MODIS:::makeRandomString"))
+.ModisFileDownloader <- eval(parse(text="MODIS:::ModisFileDownloader"))
+.setPath <- eval(parse(text="MODIS:::setPath"))
+.stubborn <- eval(parse(text="MODIS:::stubborn"))
