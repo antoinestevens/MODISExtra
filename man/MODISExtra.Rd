@@ -5,18 +5,15 @@
 \alias{MODISExtra}
 \alias{MODISExtra-package}
 \title{Access and extract MODIS imagery.}
-\note{
-Function arguments follow the same naming as in MODIS, as much as possible. The package should be attached AFTER the
-MODIS package.
-}
-\section{Introduction}{
-
-
+\description{
 This package complements and replaces some of the functions of the MODIS package (v0.10-31; https://r-forge.r-project.org/R/?group_id=1252)
 For the functions that are replaced, most of the code is simply copy-pasted from the MODIS package,
 with a few bugs corrected and some changes to address specific needs.
 }
-
+\note{
+Function arguments follow the same naming as in MODIS, as much as possible. The package should be attached AFTER the
+MODIS package.
+}
 \section{Functions that are replaced}{
 
 

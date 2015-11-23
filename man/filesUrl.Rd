@@ -12,6 +12,9 @@ filesUrl(url)
 \value{
 a character \code{vector} of urls pointing to data locations
 }
+\description{
+Get MODIS file location URL's from a server page
+}
 \note{
 This produce the same results as \code{MODIS:::filesUrl} but uses the \code{rvest}
 package instead of \code{RCurl}
