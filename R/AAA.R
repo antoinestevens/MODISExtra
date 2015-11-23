@@ -1,5 +1,6 @@
 # Get non-exported functions from MODIS
 .checkOutProj <- eval(parse(text="MODIS:::checkOutProj"))
+.getStruc <- eval(parse(text="MODIS:::getStruc"))
 .checkResamplingType <- eval(parse(text="MODIS:::checkResamplingType"))
 .combineOptions <- eval(parse(text="MODIS:::combineOptions"))
 .doCheckIntegrity <- eval(parse(text="MODIS:::doCheckIntegrity"))
