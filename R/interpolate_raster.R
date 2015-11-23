@@ -286,7 +286,6 @@ gapfill_raster <- function(x, w=NULL, t=NULL, timeInfo = orgTime(x),
 
     cores <- length(cl)
     # send expr and data to cluster nodes
-    # parallel::clusterEvalQ(cl,{library(MODIS);library(rgdal);library(raster);library(ptw);library(matrixStats)})
     # number of blocks
     tr <- blockSize(x, minblocks=cores)
     for (i in 1:cores)

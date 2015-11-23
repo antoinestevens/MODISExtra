@@ -21,6 +21,7 @@ Imports:
     rgdal,
     rvest,
     sfsmisc,
+    sp,
     stringr,
     tools
 RoxygenNote: 5.0.1

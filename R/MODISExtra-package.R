@@ -31,5 +31,5 @@
 #' @author Antoine Stevens and Matteo Mattiuzzi (MODIS package)
 #' @name MODISExtra
 #' @docType package
-#' @import MODIS raster foreach
+#' @import MODIS raster foreach sp
 NULL
