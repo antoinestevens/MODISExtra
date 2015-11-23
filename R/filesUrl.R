@@ -1,4 +1,5 @@
 #' @title Get MODIS file URL's
+#' @description Get MODIS file location URL's from a server page
 #' @usage filesUrl(url)
 #' @param url an url pointing to MODIS data for a given date
 #' @note This produce the same results as \code{MODIS:::filesUrl} but uses the \code{rvest}
@@ -23,7 +24,7 @@ filesUrl <- function(url)
     return(NULL)
   fnames <- character(0)
   if (substring(url,1,4)=="http")
-  { 
+  {
     co <- rvest::html_nodes(co,"a")
     if(!length(co)){  # try a second time (sometimes, the file list is not returned by the http request the first time it is GET)
       Sys.sleep(0.1)
