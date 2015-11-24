@@ -190,7 +190,7 @@ getHdf <- function(product, begin=NULL, end=NULL, tileH=NULL, tileV=NULL, extent
 
                   Sys.sleep(wait)
                 }
-                if(!exists("ftpfiles"))
+                if(!length(ftpfiles))
                 {
                   stop("Problems with online connections try a little later")
                 }
